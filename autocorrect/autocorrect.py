@@ -41,6 +41,30 @@ class autocorrect():
         for word_tup in self.word_freq.most_common()[:20]:
             print(word_tup)
 
+    def save_state(self,path):
+
+        with open(path, "w") as f:
+            for k,v in  self.word_freq.items():
+                f.write( "{}\t{}\n".format(k,v))
+
+    def read_state(self,path):
+
+        from collections import Counter
+        state = {}
+
+        with open(path, "r") as f:
+            for line in f.read().split("\n"):
+                if not line == '':
+                    k,v = line.split("\t")
+                    state[k] = int(v)
+
+        self.words = state.keys()
+        self.letters = self._get_letters(' '.join(state.keys()))
+        self.word_freq = Counter(state)
+        self.lookup = self._prune_dictionary(dictionary=self.word_freq, threshold=self.min_threshold)
+        self.lookup_wordset = set(self.lookup.keys())
+
+
 
     def update(self, text):
         "Updating reference data with new (additional text)"
@@ -121,7 +145,7 @@ class autocorrect():
         except KeyError:
             return word
 
-    def correction(self, string):
+    def correct(self, string):
         """
         Most probable spelling correction for words in the string.
 
